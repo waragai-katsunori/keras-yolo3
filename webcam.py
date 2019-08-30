@@ -165,7 +165,7 @@ class YOLO(object):
 
         end = timer()
         print(end - start)
-        return image
+        return image, out_boxes, out_scores, out_classes
 
     def close_session(self):
         self.sess.close()
@@ -191,7 +191,7 @@ def detect_video(yolo, video_path, output_path=""):
     while True:
         return_value, frame = vid.read()
         image = Image.fromarray(frame)
-        image = yolo.detect_image(image)
+        image, _, _, _ = yolo.detect_image(image)
         result = np.asarray(image)
         curr_time = timer()
         exec_time = curr_time - prev_time
@@ -225,7 +225,7 @@ def detect_img(yolo):
         image = cv2.resize(image, (rw, rh))
         image = image[:,:,(2,1,0)]
         image = Image.fromarray(image)
-        r_image = yolo.detect_image(image)
+        r_image, _, _, _ = yolo.detect_image(image)
         out_img = np.array(r_image)[:,:,(2,1,0)]
         cv2.namedWindow("keras-yolo3", cv2.WINDOW_NORMAL)
         cv2.imshow("keras-yolo3", np.array(out_img))
