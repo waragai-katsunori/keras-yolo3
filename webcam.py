@@ -24,6 +24,7 @@ gpu_num=1
 
 #- Added
 import cv2
+import time
 #-
 
 class YOLO(object):
@@ -94,9 +95,7 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
-    def detect_image(self, image):
-        start = timer()
-
+    def _detect_image(self, image):
         if self.model_image_size != (None, None):
             assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
             assert self.model_image_size[1]%32 == 0, 'Multiples of 32 required'
@@ -120,6 +119,13 @@ class YOLO(object):
             })
 
         print('Found {} boxes for {}'.format(len(out_boxes), 'img'))
+
+        return out_boxes, out_scores, out_classes
+
+    def detect_image(self, image):
+        start = timer()
+
+        out_boxes, out_scores, out_classes = self._detect_image(image)
 
         font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
                     size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
@@ -212,6 +218,7 @@ def detect_img(yolo):
         ret, image = cap.read()
         if cv2.waitKey(10) == 27:
             break
+        org_image = image.copy()
         h, w = image.shape[:2]
         rh = int(h * camera_scale)
         rw = int(w * camera_scale)
@@ -222,6 +229,8 @@ def detect_img(yolo):
         out_img = np.array(r_image)[:,:,(2,1,0)]
         cv2.namedWindow("keras-yolo3", cv2.WINDOW_NORMAL)
         cv2.imshow("keras-yolo3", np.array(out_img))
+
+        cv2.imwrite("junkimage.jpg", org_image)
         key = cv2.waitKey(1)
         if key == ord("q"):
                 exit()
@@ -238,5 +247,3 @@ if __name__ == '__main__':
     cap = cv2.VideoCapture(int(sys.argv[1]))
     camera_scale = 1.0
     detect_img(YOLO())
-
-
